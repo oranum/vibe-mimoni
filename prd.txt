@@ -1,0 +1,199 @@
+.# Task-Master Optimized Product Specification: Home Finance Management App
+
+## 📝 Objective
+
+Provide a clear, actionable, and prioritized specification that Task-Master AI can consume to generate an implementation plan, breaking the project into milestones, tasks, and dependencies.
+
+---
+
+## 🎯 Project Overview
+
+A personal finance management web app designed to give users control, visibility, and actionable insights into their household income, expenses, investments, and assets. The system combines manual oversight with automation, designed for clarity and flexibility.
+
+---
+
+## 👤 Target Audience
+
+* Individuals and families seeking clear financial oversight.
+* Users who prefer Inbox-style workflows for reviewing transactions.
+* People who value both automation and manual control.
+
+---
+
+## 📋 Goals
+
+* Centralize all financial data: income, expenses, investments, assets.
+* Inbox-first approval flow: transactions must be approved before affecting reports.
+* Automate repetitive classification with a rules engine.
+* Provide flexible tagging and search capabilities.
+* Deliver insightful dashboards and forecasts.
+
+---
+
+## 🪄 Core Features & Functional Requirements
+
+### 📥 Transaction Inbox
+
+* All incoming transactions appear in a centralized Inbox.
+* Each transaction defaults to **pending approval**.
+* Available actions per transaction:
+
+  * Approve
+  * Edit details
+  * Apply or remove labels
+  * Add notes
+  * Split into multiple virtual transactions
+
+### 🏷 Labels (Tags)
+
+* Flat (non-hierarchical), multi-label system.
+* Labels can represent categories or flags (e.g., "Groceries", "Recurring").
+* Labels can be assigned manually or via rules.
+
+### ⚙️ Rules Engine
+
+* Define rules that automatically assign labels to transactions.
+* Rules are based on conditions such as:
+
+  * Description (text match)
+  * Amount (range)
+  * Identifier
+  * Date
+  * Source
+* Rules behave as saved queries.
+* Rules can be ordered to resolve conflicts.
+
+### 🔎 Search & Filtering
+
+* Combine multiple conditions for advanced queries.
+* Save custom filters as reusable views.
+* Apply queries to both raw and labeled data.
+
+### 📊 Dashboard & Reporting
+
+* Visual summaries of:
+
+  * Income
+  * Expenses
+  * Savings trends
+  * Investment performance
+* Monthly breakdowns & category analyses.
+* Forecasting based on historical & recurring patterns.
+
+### 💼 Investments & Assets
+
+* Track assets & investments over time.
+* Support dynamic value tracking.
+* Show returns, allocations, and diversification.
+
+---
+
+## 🛠 Technical Stack
+
+* **Frontend**: Next.js + TypeScript + Tailwind CSS + ShadCN UI components
+* **Backend/DB**: Supabase (PostgreSQL with Auth, REST API)
+* **APIs**: Supabase client SDK + optional custom Next.js API routes
+* **Optional Testing**: Jest, Cypress
+
+---
+
+## 🗄 Database Schema (Draft)
+
+### `transactions`
+
+| Column      | Type                       | Notes         |
+| ----------- | -------------------------- | ------------- |
+| id          | uuid (PK)                  | auto          |
+| user\_id    | uuid (FK → auth.users)     |               |
+| amount      | numeric                    |               |
+| description | text                       |               |
+| identifier  | text                       | external id   |
+| date        | timestamp                  |               |
+| source      | text                       |               |
+| status      | enum(`pending`,`approved`) |               |
+| notes       | text (nullable)            |               |
+| created\_at | timestamp                  | default now() |
+
+### `labels`
+
+| Column      | Type      | Notes           |
+| ----------- | --------- | --------------- |
+| id          | uuid (PK) |                 |
+| user\_id    | uuid (FK) |                 |
+| name        | text      | unique per user |
+| recurring   | boolean   | default false   |
+| created\_at | timestamp |                 |
+
+### `transaction_labels`
+
+| Column          | Type      | Notes                    |
+| --------------- | --------- | ------------------------ |
+| transaction\_id | uuid (FK) | links to transactions.id |
+| label\_id       | uuid (FK) | links to labels.id       |
+
+### `rules`
+
+| Column            | Type      | Notes                      |
+| ----------------- | --------- | -------------------------- |
+| id                | uuid (PK) |                            |
+| user\_id          | uuid (FK) |                            |
+| name              | text      |                            |
+| conditions        | jsonb     | array of condition objects |
+| labels\_to\_apply | uuid\[]   | array of label IDs         |
+| order\_index      | integer   | priority                   |
+| created\_at       | timestamp |                            |
+
+---
+
+## 🔗 Design Principles
+
+* **Inbox-first**: transactions remain pending until explicitly approved.
+* **Human-centered**: transparency, clarity, user control.
+* **Automation with oversight**: rules support, but do not obscure, user decisions.
+* **Clean, responsive UI**: built with ShadCN components & TailwindCSS.
+
+---
+
+## 🧪 Example User Stories
+
+* As a user, I want to review and categorize new transactions before they appear in reports, ensuring accuracy.
+* As a user, I want recurring transactions to be automatically labeled, saving time.
+* As a user, I want to view monthly income vs. expenses & yearly trends.
+* As a user, I want to query and analyze expenses by category over time.
+
+---
+
+## 🚀 Suggested Milestones
+
+### Phase 1 — Foundation
+
+✅ Define Supabase schema & create migrations
+✅ Set up Next.js project & folder structure
+✅ Implement Supabase Auth with RLS rules
+
+### Phase 2 — Core Features
+
+✅ Build Inbox view & approve/edit workflow
+✅ Build Labels UI & label management
+✅ Build Rules Engine UI & backend logic
+
+### Phase 3 — Insights & Enhancements
+
+✅ Build Dashboard & Reports view
+✅ Add Investments & Assets tracking
+✅ Implement Forecasting features
+
+---
+
+## 📋 Notes for Task-Master AI
+
+* Break the project into actionable tasks with dependencies.
+* Organize tasks under the above suggested milestones.
+* Include backend, frontend, and testing tasks.
+* Identify reusable components & recommend their structure.
+* Flag ambiguous areas & propose clarifications.
+* Output deliverables as a prioritized task tree or roadmap.
+
+---
+
+> This document is prepared specifically for **Task-Master AI** to analyze and produce a clear, actionable task breakdown, with priorities & dependencies, optimized for efficient execution.
