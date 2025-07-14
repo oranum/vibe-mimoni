@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label, Transaction } from '@/types/database';
 import { createClient } from '@/utils/supabase/client';
+import { useAuthenticatedMutation } from '@/hooks/useAuthenticatedMutation';
 import { toast } from 'sonner';
 import { Search, Plus, X, Tag, Palette, Check } from 'lucide-react';
 
@@ -30,6 +31,7 @@ const DEFAULT_COLORS = [
 ];
 
 export function LabelSelector({ transaction, onLabelsUpdate }: LabelSelectorProps) {
+  const { insert, isAuthenticated } = useAuthenticatedMutation();
   const [availableLabels, setAvailableLabels] = useState<Label[]>([]);
   const [selectedLabels, setSelectedLabels] = useState<Label[]>(transaction.labels || []);
   const [searchTerm, setSearchTerm] = useState('');
@@ -154,23 +156,16 @@ export function LabelSelector({ transaction, onLabelsUpdate }: LabelSelectorProp
     setIsLoading(true);
 
     try {
-      const supabase = createClient();
-      
-      const { data, error } = await supabase
-        .from('labels')
-        .insert({
-          name: newLabelForm.name.trim(),
-          color: newLabelForm.color,
-          recurring: newLabelForm.recurring
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating label:', error);
-        toast.error('Failed to create label');
+      if (!isAuthenticated) {
+        toast.error('User not authenticated');
         return;
       }
+
+      const [data] = await insert('labels', {
+        name: newLabelForm.name.trim(),
+        color: newLabelForm.color,
+        recurring: newLabelForm.recurring
+      });
 
       const newLabel: Label = {
         ...data,
@@ -195,7 +190,7 @@ export function LabelSelector({ transaction, onLabelsUpdate }: LabelSelectorProp
       
     } catch (error) {
       console.error('Error creating label:', error);
-      toast.error('An unexpected error occurred');
+      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }

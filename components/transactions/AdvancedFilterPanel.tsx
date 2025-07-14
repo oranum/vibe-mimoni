@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn, formatCurrency } from '@/lib/utils';
+import { LabelBadge } from './LabelBadge';
 
 interface AdvancedFilterPanelProps {
   onClose?: () => void;
@@ -259,19 +260,25 @@ export function AdvancedFilterPanel({ onClose, className }: AdvancedFilterPanelP
             {labels.map((label) => {
               const isSelected = activeFilters.labels?.includes(label.id) || false;
               return (
-                <Button
+                <div
                   key={label.id}
-                  variant={isSelected ? 'default' : 'outline'}
-                  size="sm"
+                  className={cn(
+                    'cursor-pointer transition-all border-2 rounded-full',
+                    isSelected 
+                      ? 'border-blue-500 bg-blue-50' 
+                      : 'border-transparent hover:border-gray-300'
+                  )}
                   onClick={() => handleLabelToggle(label.id)}
-                  className="flex items-center gap-1"
                 >
-                  <div
-                    className="w-3 h-3 rounded-full border"
-                    style={{ backgroundColor: label.color }}
+                  <LabelBadge 
+                    label={label} 
+                    size="sm"
+                    className={cn(
+                      'transition-all',
+                      isSelected && 'shadow-sm'
+                    )}
                   />
-                  {label.name}
-                </Button>
+                </div>
               );
             })}
           </div>
