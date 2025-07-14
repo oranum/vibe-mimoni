@@ -15,6 +15,7 @@ export { SplitTransactionDisplay } from './SplitTransactionDisplay';
 export { AdvancedFilterPanel } from './AdvancedFilterPanel';
 export { TransactionPagination } from './TransactionPagination';
 export { default as RuleForm } from './RuleForm';
+export { default as RuleTestingInterface } from './RuleTestingInterface';
 
 // Re-export types for convenience
 export type { TransactionCardProps } from './TransactionCard';

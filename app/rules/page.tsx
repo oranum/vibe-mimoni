@@ -7,10 +7,11 @@ import { Rule, Label } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Trash2, Edit, Plus, Play, Pause, ArrowUp, ArrowDown } from 'lucide-react'
+import { Trash2, Edit, Plus, Play, Pause, ArrowUp, ArrowDown, FlaskConical } from 'lucide-react'
 import { toast } from 'sonner'
 import AuthRequired from '@/components/auth/AuthRequired'
 import RuleForm from '@/components/transactions/RuleForm'
+import RuleTestingInterface from '@/components/transactions/RuleTestingInterface'
 
 export default function RulesPage() {
   const { user } = useAuth()
@@ -18,6 +19,7 @@ export default function RulesPage() {
   const [labels, setLabels] = useState<Label[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [showTestingInterface, setShowTestingInterface] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -177,13 +179,24 @@ export default function RulesPage() {
             <h1 className="text-2xl font-semibold">Rules Engine</h1>
             <p className="text-gray-600">Automatically assign labels to transactions based on conditions</p>
           </div>
-          <Button 
-            onClick={() => setShowCreateForm(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus size={16} />
-            Create Rule
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              onClick={() => setShowTestingInterface(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+              disabled={rules.length === 0}
+            >
+              <FlaskConical size={16} />
+              Test Rules
+            </Button>
+            <Button 
+              onClick={() => setShowCreateForm(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Create Rule
+            </Button>
+          </div>
         </div>
 
         {rules.length === 0 ? (
@@ -193,6 +206,7 @@ export default function RulesPage() {
                 <Play size={48} className="mx-auto mb-2 opacity-50" />
                 <h3 className="text-lg font-medium">No rules yet</h3>
                 <p>Create your first rule to automatically organize transactions</p>
+                <p className="text-sm mt-2">Once you have rules, you can test them against sample transactions</p>
               </div>
               <Button 
                 onClick={() => setShowCreateForm(true)}
@@ -301,6 +315,12 @@ export default function RulesPage() {
               setShowCreateForm(false)
               fetchRules()
             }}
+          />
+        )}
+
+        {showTestingInterface && (
+          <RuleTestingInterface
+            onClose={() => setShowTestingInterface(false)}
           />
         )}
       </div>
