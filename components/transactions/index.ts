@@ -14,6 +14,7 @@ export { SplitTransactionForm } from './SplitTransactionForm';
 export { SplitTransactionDisplay } from './SplitTransactionDisplay';
 export { AdvancedFilterPanel } from './AdvancedFilterPanel';
 export { TransactionPagination } from './TransactionPagination';
+export { default as RuleForm } from './RuleForm';
 
 // Re-export types for convenience
 export type { TransactionCardProps } from './TransactionCard';

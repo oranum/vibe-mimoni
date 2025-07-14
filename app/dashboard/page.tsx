@@ -114,6 +114,11 @@ function DashboardContent() {
                     🏷️ Labels
                   </Button>
                 </Link>
+                <Link href="/rules">
+                  <Button variant="outline" className="w-full justify-start">
+                    🔧 Rules Engine
+                  </Button>
+                </Link>
                 <Link href="/settings">
                   <Button variant="outline" className="w-full justify-start">
                     ⚙️ Settings
