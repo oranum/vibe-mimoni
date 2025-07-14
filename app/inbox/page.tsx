@@ -9,7 +9,8 @@ import { TransactionWithLabels, TransactionFilters, Transaction, Label } from '@
 import { createClient } from '@/utils/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import { X, Play } from 'lucide-react';
+import { applyRulesToTransaction, applyRulesToTransactions } from '@/lib/rules-engine';
 
 export default function InboxPage() {
   return (
@@ -353,6 +354,50 @@ function InboxContent() {
     toast.info('Details view coming soon!');
   }, []);
 
+  // Handle manual rule application to all pending transactions
+  const handleApplyRules = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading('Applying rules to pending transactions...');
+      
+      // Filter for pending transactions only
+      const pendingTransactions = transactions.filter(t => t.status === 'pending');
+      
+      if (pendingTransactions.length === 0) {
+        toast.dismiss(loadingToast);
+        toast.info('No pending transactions to apply rules to');
+        return;
+      }
+
+      // Apply rules to all pending transactions
+      const { totalProcessed, rulesApplied, labelsApplied } = await applyRulesToTransactions(pendingTransactions);
+      
+      // Calculate statistics
+      const totalRulesApplied = Object.values(rulesApplied).reduce((sum, rules) => sum + rules.length, 0);
+      const totalLabelsApplied = Object.values(labelsApplied).reduce((sum, labels) => sum + labels.length, 0);
+      const transactionsAffected = Object.keys(rulesApplied).length;
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      // Show success toast with statistics
+      if (totalRulesApplied > 0) {
+        toast.success(`Rules applied successfully! ${totalRulesApplied} rule${totalRulesApplied !== 1 ? 's' : ''} applied to ${transactionsAffected} transaction${transactionsAffected !== 1 ? 's' : ''}, ${totalLabelsApplied} label${totalLabelsApplied !== 1 ? 's' : ''} assigned`);
+      } else {
+        toast.info('No rules matched the pending transactions');
+      }
+      
+      // Refresh the transaction list to show applied labels
+      await fetchTransactionsSimple();
+      
+    } catch (error) {
+      console.error('Error applying rules:', error);
+      toast.error('Failed to apply rules to transactions');
+    }
+  }, [user, transactions, fetchTransactionsSimple]);
+
 
 
   // Setup real-time subscription
@@ -369,16 +414,31 @@ function InboxContent() {
           table: 'transactions',
           filter: `user_id=eq.${user.id}`
         },
-        (payload) => {
+        async (payload) => {
           console.log('Real-time update:', payload);
+          
+          // Handle new transactions with rules engine
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const newTransaction = payload.new as Transaction;
+            
+            try {
+              // Apply rules to the new transaction
+              const { rulesApplied, labelsApplied } = await applyRulesToTransaction(newTransaction);
+              
+              // Show informative toast based on rules applied
+              if (rulesApplied.length > 0) {
+                toast.success(`New transaction detected - ${rulesApplied.length} rule${rulesApplied.length !== 1 ? 's' : ''} applied, ${labelsApplied.length} label${labelsApplied.length !== 1 ? 's' : ''} assigned`);
+              } else {
+                toast.info('New transaction detected');
+              }
+            } catch (error) {
+              console.error('Error applying rules to new transaction:', error);
+              toast.info('New transaction detected');
+            }
+          }
           
           // Refresh transactions when we get updates
           fetchTransactionsSimple();
-          
-          // Show toast for new transactions
-          if (payload.eventType === 'INSERT') {
-            toast.info('New transaction detected');
-          }
         }
       )
       .subscribe();
@@ -403,7 +463,17 @@ function InboxContent() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Transaction Inbox</h1>
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-3xl font-bold">Transaction Inbox</h1>
+            <Button 
+              onClick={handleApplyRules}
+              disabled={isLoading || transactions.filter(t => t.status === 'pending').length === 0}
+              className="flex items-center gap-2"
+            >
+              <Play size={16} />
+              Apply Rules
+            </Button>
+          </div>
           <p className="text-muted-foreground">
             Review and approve your pending transactions
           </p>
