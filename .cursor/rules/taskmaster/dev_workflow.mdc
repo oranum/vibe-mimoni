@@ -412,6 +412,109 @@ Once a task has been broken down into subtasks using `expand_task` or similar me
 10. **Proceed to Next Subtask:**
     *   Identify the next subtask (e.g., using `next_task` / `task-master next`).
 
+## Browser-Tools Debugging Integration
+
+**When to Use Browser-Tools**: During subtask implementation (especially step 6 "Refine and Log Progress"), when you encounter issues with frontend applications that have browser-based development servers running.
+
+**Prerequisites**: 
+- Development server must be running (e.g., `npm run dev`)
+- Browser must be open and connected to the development server
+- Browser connector must be active (for full functionality)
+
+### Available Browser-Tools Functions
+
+**✅ Core Debugging Functions (Reliable):**
+- `mcp_browser-tools_getConsoleLogs` - Get browser console logs to identify JavaScript errors
+- `mcp_browser-tools_getConsoleErrors` - Get browser console errors for debugging
+- `mcp_browser-tools_getNetworkLogs` - Get network request logs to debug API calls
+- `mcp_browser-tools_getNetworkErrors` - Get network errors for failed requests
+- `mcp_browser-tools_getSelectedElement` - Get information about selected DOM elements
+- `mcp_browser-tools_wipeLogs` - Clear browser logs to start fresh monitoring
+
+**⚠️ Limited Functionality (Setup-Dependent):**
+- `mcp_browser-tools_takeScreenshot` - Take screenshots (requires Chrome extension)
+- `mcp_browser-tools_runAccessibilityAudit` - Run accessibility audits (requires Lighthouse setup)
+- `mcp_browser-tools_runPerformanceAudit` - Run performance audits (requires Lighthouse setup)
+- `mcp_browser-tools_runSEOAudit` - Run SEO audits (requires Lighthouse setup)
+- `mcp_browser-tools_runNextJSAudit` - Run Next.js specific audits (requires Lighthouse setup)
+- `mcp_browser-tools_runBestPracticesAudit` - Run best practices audits (requires Lighthouse setup)
+
+**🔧 Workflow Mode Functions:**
+- `mcp_browser-tools_runDebuggerMode` - Get structured debugging workflow instructions
+- `mcp_browser-tools_runAuditMode` - Get structured audit workflow instructions
+
+### Debugging Workflow Integration
+
+**When Encountering Issues During Implementation:**
+
+1. **Start Debugging Mode** (Optional):
+   ```
+   mcp_browser-tools_runDebuggerMode
+   ```
+   This provides a structured 8-step debugging process.
+
+2. **Check Browser Logs**:
+   ```
+   mcp_browser-tools_getConsoleErrors
+   mcp_browser-tools_getConsoleLogs
+   ```
+   Look for JavaScript errors, warnings, or unexpected console output.
+
+3. **Check Network Issues**:
+   ```
+   mcp_browser-tools_getNetworkErrors
+   mcp_browser-tools_getNetworkLogs
+   ```
+   Identify failed API calls, network timeouts, or incorrect request/response data.
+
+4. **Log Findings to Subtask**:
+   Use `update_subtask` to log browser-based findings:
+   ```
+   update_subtask --id=<subtaskId> --prompt='Browser debugging findings:
+   - Console errors: [describe errors found]
+   - Network issues: [describe network problems]
+   - Potential root cause: [your analysis]'
+   ```
+
+5. **Clear Logs and Test**:
+   ```
+   mcp_browser-tools_wipeLogs
+   ```
+   Clear logs, implement fixes, then re-check logs to verify resolution.
+
+6. **Document Resolution**:
+   Use `update_subtask` to log the successful resolution and approach taken.
+
+### Best Practices for Browser-Tools
+
+- **Use browser-tools proactively** - Don't wait for obvious errors; check logs regularly during frontend development
+- **Combine with traditional debugging** - Use browser-tools alongside code inspection and terminal logs
+- **Log findings systematically** - Always document browser-tool findings in subtask details for future reference
+- **Clear logs between tests** - Use `wipeLogs` to get clean data when testing fixes
+- **Focus on working functions** - Core log monitoring functions are most reliable; use screenshot/audit functions when specifically needed
+
+### Example Debug Session
+
+```
+# Check current state
+mcp_browser-tools_getConsoleErrors
+mcp_browser-tools_getNetworkErrors
+
+# Clear logs and test specific functionality
+mcp_browser-tools_wipeLogs
+[user tests feature]
+mcp_browser-tools_getConsoleLogs
+mcp_browser-tools_getNetworkLogs
+
+# Document findings
+update_subtask --id=5.2 --prompt='Browser debugging revealed:
+- Network call to /api/auth failing with 401
+- Console shows "Unauthorized" error
+- Root cause: Missing Authorization header in fetch request'
+```
+
+This integration allows you to diagnose frontend issues directly within the development workflow, making debugging more efficient and systematic.
+
 ## Code Analysis & Refactoring Techniques
 
 - **Top-Level Function Search**:

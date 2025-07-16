@@ -3,3 +3,213 @@ description:
 globs:
 alwaysApply: false
 ---
+# Proactive Design Pattern Recognition
+
+## **Core Principle: The "Second Time" Rule**
+
+**"If you catch yourself implementing the same non-trivial pattern twice, especially if it's something that could be forgotten or done wrong, immediately consider whether this should be abstracted."**
+
+## **Pattern Recognition Triggers**
+
+### **Immediate Abstraction Signals**
+- Same logic appears in 2+ places
+- Pattern involves something important (security, validation, error handling)
+- Pattern has "gotchas" that are easy to forget
+- Pattern requires multiple steps to implement correctly
+- Pattern involves boilerplate that obscures intent
+
+### **Questions to Ask Yourself**
+1. *"Am I writing this for the second time?"*
+2. *"Could a developer easily forget a step in this pattern?"*
+3. *"Would this be harder to get wrong if it was abstracted?"*
+4. *"Is this pattern obscuring the real intent of my code?"*
+5. *"If I had to onboard a new developer, would they likely repeat this mistake?"*
+
+## **Categories of Abstraction Candidates**
+
+### **Security-Critical Patterns**
+```typescript
+// ❌ RED FLAG: Repeated auth/security checks
+const { user } = useAuth();
+if (!user) { /* error handling */ }
+// ... security-critical operation
+```
+
+### **Validation Patterns**
+```typescript
+// ❌ RED FLAG: Repeated validation logic
+if (!email || !email.includes('@')) {
+  setError('Invalid email');
+  return;
+}
+```
+
+### **Error Handling Patterns**
+```typescript
+// ❌ RED FLAG: Repeated error handling
+try {
+  const result = await apiCall();
+  if (!result.success) {
+    toast.error(result.message);
+    return;
+  }
+} catch (error) {
+  console.error('Error:', error);
+  toast.error('Something went wrong');
+}
+```
+
+### **Data Transformation Patterns**
+```typescript
+// ❌ RED FLAG: Repeated data manipulation
+const formattedData = {
+  ...rawData,
+  createdAt: new Date(rawData.created_at),
+  updatedAt: new Date(rawData.updated_at)
+};
+```
+
+### **UI State Patterns**
+```typescript
+// ❌ RED FLAG: Repeated loading/error states
+const [isLoading, setIsLoading] = useState(false);
+const [error, setError] = useState(null);
+const [data, setData] = useState(null);
+```
+
+## **The Abstraction Decision Framework**
+
+### **1. Recognize the Pattern**
+- *"I'm writing this logic again..."*
+- *"This feels familiar..."*
+- *"I copied this from another component..."*
+
+### **2. Assess the Impact**
+- **High Priority**: Security, data integrity, user experience
+- **Medium Priority**: Code maintainability, developer experience
+- **Low Priority**: Minor convenience improvements
+
+### **3. Create the Abstraction**
+- **Custom Hook**: For stateful logic
+- **Utility Function**: For pure transformations
+- **Higher-Order Component**: For component behavior
+- **Context Provider**: For shared state
+
+### **4. Refactor Immediately**
+- Update existing instances to use the abstraction
+- Don't leave old patterns lying around
+
+## **Good Abstraction Examples**
+
+### **Custom Hook for API Calls**
+```typescript
+// ✅ DO: Abstract repeated API patterns
+export function useApiCall<T>(endpoint: string) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<T | null>(null);
+
+  const execute = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await fetch(endpoint);
+      const data = await result.json();
+      setData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { data, isLoading, error, execute };
+}
+```
+
+### **Validation Utility**
+```typescript
+// ✅ DO: Abstract validation patterns
+export const validators = {
+  email: (value: string) => {
+    if (!value) return 'Email is required';
+    if (!value.includes('@')) return 'Invalid email format';
+    return null;
+  },
+  required: (value: any) => {
+    if (!value) return 'This field is required';
+    return null;
+  }
+};
+```
+
+### **Error Boundary Pattern**
+```typescript
+// ✅ DO: Abstract error handling
+export function useErrorHandler() {
+  const handleError = (error: Error, context?: string) => {
+    console.error(`Error ${context ? `in ${context}` : ''}:`, error);
+    toast.error(error.message || 'Something went wrong');
+  };
+
+  return { handleError };
+}
+```
+
+## **Anti-Patterns to Avoid**
+
+### **"I'll Abstract It Later"**
+```typescript
+// ❌ DON'T: Leave repeated patterns for later
+// This creates technical debt and bugs
+```
+
+### **Over-Abstraction**
+```typescript
+// ❌ DON'T: Abstract everything immediately
+// Only abstract when you have 2+ real use cases
+```
+
+### **Premature Optimization**
+```typescript
+// ❌ DON'T: Abstract for performance without measuring
+// Abstract for maintainability and correctness first
+```
+
+## **Development Process**
+
+### **The "Second Time" Workflow**
+1. **First Implementation**: Write the code inline
+2. **Second Implementation**: **STOP** - Ask the key questions
+3. **If abstraction makes sense**: Create it immediately
+4. **Refactor both instances**: Use the new abstraction
+5. **Document the pattern**: Add to team guidelines
+
+### **Code Review Checklist**
+- [ ] Are there repeated patterns in this PR?
+- [ ] Could any of these patterns be abstracted?
+- [ ] Are there "gotchas" that future developers might miss?
+- [ ] Does this follow the "make the right thing easy" principle?
+
+## **Real-World Examples**
+
+### **Form Handling**
+Instead of repeating form state logic, create `useForm` hook
+
+### **Authentication Checks**
+Instead of manual auth checks, create `useAuthenticatedAction` hook
+
+### **Data Fetching**
+Instead of repeated fetch logic, create `useQuery` hook
+
+### **Modal Management**
+Instead of repeated modal state, create `useModal` hook
+
+### **Local Storage**
+Instead of repeated localStorage logic, create `useLocalStorage` hook
+
+---
+
+**Remember**: Good abstractions make it easy to do the right thing and hard to do the wrong thing. The "second time" is your signal to make things better before they become problematic.
+
+**Related**: When you create new abstractions following this rule, consider updating the codebase rules following [self_improve.mdc](mdc:.cursor/rules/self_improve.mdc) to ensure the patterns are documented and enforced.

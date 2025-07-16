@@ -119,7 +119,7 @@ export default function RuleTestingInterface({ onClose }: RuleTestingInterfacePr
         date: new Date(sampleTransaction.date),
         source: sampleTransaction.source,
         status: 'pending',
-        notes: null,
+        notes: undefined,
         created_at: new Date(),
         updated_at: new Date()
       }

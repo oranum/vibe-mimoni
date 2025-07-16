@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { Transaction, Rule, RuleCondition } from '@/types/database'
+import { RulePerformanceService } from './rule-performance-service'
 
 /**
  * Evaluates a text condition against a transaction field
@@ -131,7 +132,7 @@ const applyLabelToTransaction = async (transactionId: string, labelId: string): 
 }
 
 /**
- * Applies all matching rules to a single transaction
+ * Applies all matching rules to a single transaction with performance monitoring
  */
 export const applyRulesToTransaction = async (transaction: Transaction): Promise<{
   rulesApplied: string[]
@@ -151,9 +152,20 @@ export const applyRulesToTransaction = async (transaction: Transaction): Promise
     if (error) throw error
     if (!rules || rules.length === 0) return { rulesApplied, labelsApplied }
     
-    // Apply each matching rule
+    // Get current user for performance logging
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { rulesApplied, labelsApplied }
+    
+    // Apply each matching rule with performance monitoring
     for (const rule of rules) {
-      if (evaluateRule(transaction, rule)) {
+      const startTime = performance.now()
+      const matched = evaluateRule(transaction, rule)
+      const endTime = performance.now()
+      const executionTime = endTime - startTime
+      
+      const ruleLabelsApplied: string[] = []
+      
+      if (matched) {
         rulesApplied.push(rule.id)
         
         // Apply each label from the rule
@@ -161,9 +173,30 @@ export const applyRulesToTransaction = async (transaction: Transaction): Promise
           const applied = await applyLabelToTransaction(transaction.id, labelId)
           if (applied) {
             labelsApplied.push(labelId)
+            ruleLabelsApplied.push(labelId)
           }
         }
       }
+      
+      // Log performance metrics (async to avoid blocking)
+      RulePerformanceService.logRuleExecution(
+        user.id,
+        rule.id,
+        transaction.id,
+        matched,
+        executionTime,
+        ruleLabelsApplied,
+        rule.conditions,
+        {
+          id: transaction.id,
+          description: transaction.description,
+          amount: transaction.amount,
+          date: transaction.date,
+          source: transaction.source
+        }
+      ).catch(err => {
+        console.error('Error logging rule performance:', err)
+      })
     }
     
     return { rulesApplied, labelsApplied }

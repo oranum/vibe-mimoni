@@ -2,12 +2,11 @@
 
 import AuthContainer from '@/components/auth/AuthContainer'
 import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function AuthPage() {
+function AuthPageContent() {
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirectTo')
-
-  // Note: Authenticated users are redirected by middleware before reaching this component
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -22,5 +21,21 @@ export default function AuthPage() {
         <AuthContainer />
       </div>
     </div>
+  )
+}
+
+export default function AuthPage() {
+  // Note: Authenticated users are redirected by middleware before reaching this component
+
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-full max-w-md">
+          <AuthContainer />
+        </div>
+      </div>
+    }>
+      <AuthPageContent />
+    </Suspense>
   )
 } 

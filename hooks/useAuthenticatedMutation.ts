@@ -52,6 +52,45 @@ export function useAuthenticatedMutation() {
     }
   };
 
+  const batchInsert = async <T extends Record<string, any>>(
+    table: string,
+    dataArray: Omit<T, 'user_id' | 'id' | 'created_at' | 'updated_at'>[],
+    options?: AuthenticatedMutationOptions
+  ) => {
+    try {
+      const authenticatedUser = validateAuth();
+      
+      // Add user_id to each item in the array
+      const dataWithUserId = dataArray.map(item => ({
+        ...item,
+        user_id: authenticatedUser.id,
+      }));
+
+      const { data: result, error } = await supabase
+        .from(table)
+        .insert(dataWithUserId)
+        .select();
+
+      if (error) {
+        throw new Error(`Failed to batch insert into ${table}: ${error.message}`);
+      }
+
+      if (options?.onSuccess) {
+        options.onSuccess(result);
+      }
+
+      return result;
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      
+      if (options?.onError) {
+        options.onError(errorObj);
+      }
+      
+      throw errorObj;
+    }
+  };
+
   const update = async <T extends Record<string, any>>(
     table: string,
     id: string,
@@ -125,6 +164,7 @@ export function useAuthenticatedMutation() {
 
   return {
     insert,
+    batchInsert,
     update,
     remove,
     isAuthenticated: !!user,

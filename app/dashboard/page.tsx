@@ -119,6 +119,16 @@ function DashboardContent() {
                     🔧 Rules Engine
                   </Button>
                 </Link>
+                <Link href="/search">
+                  <Button variant="outline" className="w-full justify-start">
+                    🔍 Advanced Search
+                  </Button>
+                </Link>
+                <Link href="/import-export">
+                  <Button variant="outline" className="w-full justify-start">
+                    📊 Import/Export
+                  </Button>
+                </Link>
                 <Link href="/settings">
                   <Button variant="outline" className="w-full justify-start">
                     ⚙️ Settings

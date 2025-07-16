@@ -1,0 +1,122 @@
+# Supabase Development Rules
+
+## **Primary Rule: Use Supabase MCP Tools**
+
+- **Always use Supabase MCP tools** when available instead of creating workarounds
+- **Direct database operations** should be done via MCP tools, not client-side scripts
+- **Migration and schema changes** should use `mcp_supabase_apply_migration` 
+- **Data seeding** should use `mcp_supabase_execute_sql`
+- **Testing queries** should use `mcp_supabase_execute_sql`
+
+## **Available Supabase MCP Tools**
+
+### **Database Operations**
+- `mcp_supabase_execute_sql` - Execute raw SQL queries
+- `mcp_supabase_apply_migration` - Apply database migrations
+- `mcp_supabase_list_tables` - List database tables
+- `mcp_supabase_list_extensions` - List database extensions
+- `mcp_supabase_list_migrations` - List applied migrations
+
+### **Project Management**
+- `mcp_supabase_create_branch` - Create development branches
+- `mcp_supabase_list_branches` - List development branches
+- `mcp_supabase_delete_branch` - Delete development branches
+- `mcp_supabase_merge_branch` - Merge development branches
+- `mcp_supabase_reset_branch` - Reset development branches
+- `mcp_supabase_rebase_branch` - Rebase development branches
+
+### **Utilities**
+- `mcp_supabase_get_project_url` - Get project API URL
+- `mcp_supabase_get_anon_key` - Get anonymous API key
+- `mcp_supabase_generate_typescript_types` - Generate TypeScript types
+- `mcp_supabase_get_logs` - Get service logs
+- `mcp_supabase_get_advisors` - Get security/performance advisors
+
+### **Edge Functions**
+- `mcp_supabase_list_edge_functions` - List Edge Functions
+- `mcp_supabase_deploy_edge_function` - Deploy Edge Functions
+
+### **Documentation**
+- `mcp_supabase_search_docs` - Search Supabase documentation
+
+## **When to Use MCP vs Client**
+
+### **✅ Use MCP Tools For:**
+- Database schema changes
+- Data migrations
+- Seeding initial data
+- Testing database queries
+- Administrative operations
+- Development branch management
+
+### **✅ Use Client-Side For:**
+- User-facing database operations
+- Real-time subscriptions
+- Row-level security interactions
+- Application business logic
+
+## **Migration Strategy**
+
+- **Apply migrations** using `mcp_supabase_apply_migration` with descriptive names
+- **Test migrations** using `mcp_supabase_execute_sql` before applying
+- **Seed data** using `mcp_supabase_execute_sql` after migrations
+- **Verify changes** using `mcp_supabase_list_tables` and queries
+
+## **Development Workflow**
+
+1. **Create development branch** if needed: `mcp_supabase_create_branch`
+2. **Apply schema changes**: `mcp_supabase_apply_migration`
+3. **Seed initial data**: `mcp_supabase_execute_sql`
+4. **Test changes**: `mcp_supabase_execute_sql`
+5. **Merge to production**: `mcp_supabase_merge_branch`
+
+## **Error Handling**
+
+- **Check logs** using `mcp_supabase_get_logs` for debugging
+- **Verify advisors** using `mcp_supabase_get_advisors` for security issues
+- **Search documentation** using `mcp_supabase_search_docs` for guidance
+
+## **Examples**
+
+### **Create Table with MCP**
+```typescript
+// ✅ DO: Use MCP apply_migration
+await mcp_supabase_apply_migration({
+  name: "create_currency_rates",
+  query: `
+    CREATE TABLE currency_rates (
+      id SERIAL PRIMARY KEY,
+      from_currency TEXT NOT NULL,
+      to_currency TEXT NOT NULL,
+      rate DECIMAL(10,6) NOT NULL
+    );
+  `
+});
+```
+
+### **Seed Data with MCP**
+```typescript
+// ✅ DO: Use MCP execute_sql
+await mcp_supabase_execute_sql({
+  query: `
+    INSERT INTO currency_rates (from_currency, to_currency, rate) VALUES
+    ('USD', 'ILS', 3.60),
+    ('EUR', 'ILS', 3.95);
+  `
+});
+```
+
+### **❌ DON'T: Create Node.js Scripts**
+```typescript
+// ❌ DON'T: Avoid client-side administrative scripts
+const supabase = createClient();
+await supabase.from('currency_rates').insert(data);
+```
+
+## **Key Benefits**
+
+- **Direct database access** without client-side limitations
+- **Proper error handling** with detailed error messages
+- **Migration tracking** with proper naming and history
+- **Development branch isolation** for safe testing
+- **Integrated logging** for debugging and monitoring

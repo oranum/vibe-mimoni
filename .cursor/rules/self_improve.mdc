@@ -11,6 +11,8 @@ alwaysApply: true
   - New libraries or tools being used consistently
   - Emerging best practices in the codebase
 
+**Key Reference:** See [design_pattern_recognition.mdc](mdc:.cursor/rules/design_pattern_recognition.mdc) for the "Second Time" rule - a fundamental principle for proactively identifying when patterns should be abstracted during development.
+
 - **Analysis Process:**
   - Compare new code with existing rules
   - Identify patterns that should be standardized

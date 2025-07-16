@@ -16,6 +16,18 @@ export { AdvancedFilterPanel } from './AdvancedFilterPanel';
 export { TransactionPagination } from './TransactionPagination';
 export { default as RuleForm } from './RuleForm';
 export { default as RuleTestingInterface } from './RuleTestingInterface';
+export { default as FilterBuilder } from './FilterBuilder';
+export { FilterChips } from './FilterChips';
+export { default as RulePerformanceAnalytics } from './RulePerformanceAnalytics'
+
+// Import/Export Components
+export { default as DataMappingTable } from '../import/DataMappingTable'
+export { default as ImportForm } from '../import/ImportForm';
+
+// Currency components
+export { CurrencyDisplay } from '../ui/CurrencyDisplay';
+export { CurrencySelector } from '../ui/CurrencySelector';
+export { CurrencyToggle } from '../ui/CurrencyToggle';
 
 // Re-export types for convenience
 export type { TransactionCardProps } from './TransactionCard';

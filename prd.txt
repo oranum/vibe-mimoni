@@ -86,6 +86,35 @@ A personal finance management web app designed to give users control, visibility
 * Support dynamic value tracking.
 * Show returns, allocations, and diversification.
 
+### 💱 Multi-Currency Support
+
+* **Supported Currencies**: USD, EUR, GBP, ILS/NIS (Israeli New Shekel)
+* **Default Currency**: ILS/NIS as the primary/base currency
+* **Currency Conversion**: 
+  * Immediate conversion for summaries and aggregations
+  * Store original currency amounts alongside converted amounts
+  * Use static conversion rates initially (API integration planned for future)
+* **Transaction Approval Flow**:
+  * Mandatory currency selection before transaction approval in inbox
+  * Auto-detect currency from import data when possible
+  * Default to user's preferred currency (ILS) if not detected
+* **Import System Integration**:
+  * Currency field mapping in CSV/JSON import wizard
+  * Automatic currency detection from transaction data
+  * Validation of currency formats and codes
+* **Display & Formatting**:
+  * Proper currency symbols and formatting (₪, $, €, £)
+  * Show both original and converted amounts in transaction details
+  * Consistent currency formatting across all components
+* **Analytics & Reporting**:
+  * Multi-currency analytics with conversion to base currency
+  * Currency-specific filters and breakdowns
+  * Support for mixed-currency portfolios and summaries
+* **User Preferences**:
+  * User-configurable default currency
+  * Currency conversion rate preferences
+  * Display preferences for showing original vs converted amounts
+
 ---
 
 ## 🛠 Technical Stack
@@ -101,18 +130,21 @@ A personal finance management web app designed to give users control, visibility
 
 ### `transactions`
 
-| Column      | Type                       | Notes         |
-| ----------- | -------------------------- | ------------- |
-| id          | uuid (PK)                  | auto          |
-| user\_id    | uuid (FK → auth.users)     |               |
-| amount      | numeric                    |               |
-| description | text                       |               |
-| identifier  | text                       | external id   |
-| date        | timestamp                  |               |
-| source      | text                       |               |
-| status      | enum(`pending`,`approved`) |               |
-| notes       | text (nullable)            |               |
-| created\_at | timestamp                  | default now() |
+| Column             | Type                       | Notes                     |
+| ------------------ | -------------------------- | ------------------------- |
+| id                 | uuid (PK)                  | auto                      |
+| user\_id           | uuid (FK → auth.users)     |                           |
+| amount             | numeric                    | original amount           |
+| original\_currency | text                       | currency code (USD, EUR)  |
+| converted\_amount  | numeric                    | amount in base currency   |
+| base\_currency     | text                       | base currency (ILS)       |
+| description        | text                       |                           |
+| identifier         | text                       | external id               |
+| date               | timestamp                  |                           |
+| source             | text                       |                           |
+| status             | enum(`pending`,`approved`) |                           |
+| notes              | text (nullable)            |                           |
+| created\_at        | timestamp                  | default now()             |
 
 ### `labels`
 
@@ -142,6 +174,28 @@ A personal finance management web app designed to give users control, visibility
 | labels\_to\_apply | uuid\[]   | array of label IDs         |
 | order\_index      | integer   | priority                   |
 | created\_at       | timestamp |                            |
+
+### `currency_rates`
+
+| Column          | Type        | Notes                    |
+| --------------- | ----------- | ------------------------ |
+| id              | uuid (PK)   |                          |
+| from\_currency  | text        | source currency code     |
+| to\_currency    | text        | target currency code     |
+| rate            | numeric     | conversion rate          |
+| effective\_date | timestamp   | when rate becomes active |
+| created\_at     | timestamp   | default now()            |
+
+### `user_preferences`
+
+| Column            | Type      | Notes                 |
+| ----------------- | --------- | --------------------- |
+| id                | uuid (PK) |                       |
+| user\_id          | uuid (FK) | unique per user       |
+| default\_currency | text      | default currency code |
+| show\_converted   | boolean   | show converted amounts|
+| created\_at       | timestamp | default now()         |
+| updated\_at       | timestamp | updated timestamp     |
 
 ---
 
@@ -182,6 +236,15 @@ A personal finance management web app designed to give users control, visibility
 ✅ Build Dashboard & Reports view
 ✅ Add Investments & Assets tracking
 ✅ Implement Forecasting features
+
+### Phase 4 — Multi-Currency Support
+
+🔄 Implement database schema updates for currency support
+🔄 Build currency conversion utilities and services
+🔄 Update import system with currency detection and mapping
+🔄 Add currency selection to transaction approval flow
+🔄 Implement multi-currency display and formatting
+🔄 Add currency analytics and reporting features
 
 ---
 

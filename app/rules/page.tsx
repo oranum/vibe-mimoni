@@ -7,11 +7,13 @@ import { Rule, Label } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Trash2, Edit, Plus, Play, Pause, ArrowUp, ArrowDown, FlaskConical } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Trash2, Edit, Plus, Play, Pause, ArrowUp, ArrowDown, FlaskConical, BarChart3 } from 'lucide-react'
 import { toast } from 'sonner'
 import AuthRequired from '@/components/auth/AuthRequired'
 import RuleForm from '@/components/transactions/RuleForm'
 import RuleTestingInterface from '@/components/transactions/RuleTestingInterface'
+import RulePerformanceAnalytics from '@/components/transactions/RulePerformanceAnalytics'
 
 export default function RulesPage() {
   const { user } = useAuth()
@@ -199,6 +201,14 @@ export default function RulesPage() {
           </div>
         </div>
 
+        <Tabs defaultValue="rules" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="rules">Rules Management</TabsTrigger>
+            <TabsTrigger value="analytics">Performance Analytics</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="rules" className="mt-6">
+
         {rules.length === 0 ? (
           <Card>
             <CardContent className="p-8 text-center">
@@ -307,6 +317,13 @@ export default function RulesPage() {
             ))}
           </div>
         )}
+
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <RulePerformanceAnalytics />
+          </TabsContent>
+        </Tabs>
 
         {showCreateForm && (
           <RuleForm

@@ -446,6 +446,7 @@ This document provides a detailed reference for interacting with Taskmaster, cov
     *   Use `update_subtask` to commit findings with timestamps
     *   Use `update_task` to incorporate research into task details
     *   Use `add_task` with research flag for informed task creation
+*   **Browser-Tools Integration:** For frontend debugging, combine research with browser-tools MCP functions (`mcp_browser-tools_getConsoleLogs`, `mcp_browser-tools_getNetworkErrors`, etc.) to get live browser diagnostics. See the Browser-Tools Debugging Integration section in [dev_workflow.mdc](mdc:.cursor/rules/taskmaster/dev_workflow.mdc) for complete workflow.
 *   **Important:** This MCP tool makes AI calls and can take up to a minute to complete. The research provides FRESH data beyond the AI's training cutoff, making it invaluable for current best practices and recent developments.
 
 ---

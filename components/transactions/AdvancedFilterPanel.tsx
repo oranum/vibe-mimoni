@@ -152,6 +152,14 @@ export function AdvancedFilterPanel({ onClose, className }: AdvancedFilterPanelP
             <RotateCcw className="h-4 w-4 mr-2" />
             Clear All
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open('/search', '_blank')}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Advanced Search
+          </Button>
           {onClose && (
             <Button variant="outline" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
