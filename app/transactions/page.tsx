@@ -4,7 +4,6 @@ import { AuthRequired } from '@/components/auth/AuthRequired'
 import { useAuth } from '@/context/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CurrencyDisplay } from '@/components/ui/CurrencyDisplay'
 import Link from 'next/link'
 
 export default function TransactionsPage() {
@@ -83,52 +82,33 @@ function TransactionsContent() {
             <div className="space-y-3">
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
                 <div>
-                  <p className="font-medium">Sample Transaction 1 (USD)</p>
+                  <p className="font-medium">Sample Transaction 1</p>
                   <p className="text-sm text-gray-600">January 15, 2024</p>
                 </div>
-                <div className="text-green-600 font-medium">
-                  <CurrencyDisplay amount={1200.00} currency="USD" size="md" />
-                </div>
+                <span className="text-green-600 font-medium">+$1,200.00</span>
               </div>
               
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
                 <div>
-                  <p className="font-medium">Sample Transaction 2 (EUR)</p>
+                  <p className="font-medium">Sample Transaction 2</p>
                   <p className="text-sm text-gray-600">January 14, 2024</p>
                 </div>
-                <div className="text-red-600 font-medium">
-                  <CurrencyDisplay amount={45.99} currency="EUR" size="md" />
-                </div>
+                <span className="text-red-600 font-medium">-$45.99</span>
               </div>
               
               <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
                 <div>
-                  <p className="font-medium">Sample Transaction 3 (GBP)</p>
+                  <p className="font-medium">Sample Transaction 3</p>
                   <p className="text-sm text-gray-600">January 13, 2024</p>
                 </div>
-                <div className="text-red-600 font-medium">
-                  <CurrencyDisplay amount={120.00} currency="GBP" size="md" />
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-                <div>
-                  <p className="font-medium">Sample Transaction 4 (ILS)</p>
-                  <p className="text-sm text-gray-600">January 12, 2024</p>
-                </div>
-                <div className="text-green-600 font-medium">
-                  <CurrencyDisplay amount={350.00} currency="ILS" size="md" />
-                </div>
+                <span className="text-red-600 font-medium">-$120.00</span>
               </div>
             </div>
             
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-500 mb-4">
-                This demo shows multi-currency transactions with automatic conversion. Configure your currency preferences in settings.
+              <p className="text-sm text-gray-500">
+                This is a demo page. Real transaction functionality will be implemented later.
               </p>
-              <Link href="/settings">
-                <Button variant="outline">Currency Settings</Button>
-              </Link>
             </div>
           </CardContent>
         </Card>

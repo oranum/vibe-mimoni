@@ -1,155 +1,142 @@
-/**
- * Currency detection utilities for import system
- */
-
 import { CurrencyCode } from '@/types/database';
-
-/**
- * Detect currency from a text string containing amount and/or currency information
- */
-export function detectCurrencyFromString(text: string): CurrencyCode | null {
-  if (!text || typeof text !== 'string') return null;
-  
-  const cleanText = text.trim().toLowerCase();
-  
-  // Check for currency symbols (prioritize symbols as they're more explicit)
-  const symbolMap: Record<string, CurrencyCode> = {
-    '$': 'USD',
-    '€': 'EUR', 
-    '£': 'GBP',
-    '₪': 'ILS',
-    'usd': 'USD',
-    'eur': 'EUR',
-    'gbp': 'GBP',
-    'ils': 'ILS',
-    'nis': 'ILS',
-    'shekel': 'ILS',
-    'shekels': 'ILS',
-    'dollar': 'USD',
-    'dollars': 'USD',
-    'euro': 'EUR',
-    'euros': 'EUR',
-    'pound': 'GBP',
-    'pounds': 'GBP'
-  };
-  
-  for (const [symbol, code] of Object.entries(symbolMap)) {
-    if (cleanText.includes(symbol)) {
-      return code;
-    }
-  }
-  
-  return null;
-}
-
-/**
- * Detect currency from an amount string (e.g., "$100.50", "€45.99", "₪350.00")
- */
-export function detectCurrencyFromAmount(amountString: string): CurrencyCode | null {
-  if (!amountString || typeof amountString !== 'string') return null;
-  
-  // Look for currency symbols at the beginning or end of the string
-  const currencySymbolRegex = /^([$€£₪])|([/$€£₪])$/;
-  const match = amountString.match(currencySymbolRegex);
-  
-  if (match) {
-    const symbol = match[1] || match[2];
-    const symbolToCurrency: Record<string, CurrencyCode> = {
-      '$': 'USD',
-      '€': 'EUR',
-      '£': 'GBP',
-      '₪': 'ILS'
-    };
-    
-    return symbolToCurrency[symbol] || null;
-  }
-  
-  return null;
-}
-
-/**
- * Analyze a collection of data rows to determine the most likely currency
- */
-export function detectCurrencyFromDataset(
-  data: Record<string, string>[], 
-  amountField: string,
-  currencyField?: string
-): CurrencyCode | null {
-  if (!data.length || !amountField) return null;
-  
-  const currencyVotes: Record<CurrencyCode, number> = {
-    USD: 0,
-    EUR: 0,
-    GBP: 0,
-    ILS: 0
-  };
-  
-  // If there's a dedicated currency field, analyze it first
-  if (currencyField) {
-    data.forEach(row => {
-      const currencyValue = row[currencyField];
-      if (currencyValue) {
-        const detectedCurrency = detectCurrencyFromString(currencyValue);
-        if (detectedCurrency) {
-          currencyVotes[detectedCurrency]++;
-        }
-      }
-    });
-  }
-  
-  // Also analyze amount fields for currency symbols
-  data.forEach(row => {
-    const amountValue = row[amountField];
-    if (amountValue) {
-      const detectedCurrency = detectCurrencyFromAmount(amountValue);
-      if (detectedCurrency) {
-        currencyVotes[detectedCurrency]++;
-      }
-    }
-  });
-  
-  // Return the currency with the most votes
-  const maxVotes = Math.max(...Object.values(currencyVotes));
-  if (maxVotes === 0) return null;
-  
-  const winningCurrency = Object.entries(currencyVotes)
-    .find(([_, votes]) => votes === maxVotes)?.[0] as CurrencyCode;
-  
-  return winningCurrency || null;
-}
 
 /**
  * Clean amount string by removing currency symbols and formatting
  */
 export function cleanAmountString(amountString: string): string {
-  if (!amountString || typeof amountString !== 'string') return '0';
+  if (!amountString || amountString.trim() === '') {
+    return '0';
+  }
   
-  // Remove currency symbols, commas, and spaces, but keep digits, dots, and minus signs
-  return amountString.replace(/[^0-9.-]/g, '');
+  // Remove common currency symbols and formatting
+  return amountString
+    .replace(/[$£€¥₹₪]/g, '')
+    .replace(/,/g, '')
+    .replace(/\s+/g, '')
+    .trim();
 }
 
 /**
- * Suggest currency field mappings based on column headers
+ * Normalize currency code to standard format
+ */
+export function normalizeCurrencyCode(currencyString: string): CurrencyCode | null {
+  if (!currencyString || currencyString.trim() === '') {
+    return null;
+  }
+  
+  const normalized = currencyString.trim().toUpperCase();
+  
+  // Direct matches
+  if (['USD', 'EUR', 'GBP', 'ILS', 'NIS'].includes(normalized)) {
+    return normalized === 'NIS' ? 'ILS' : normalized as CurrencyCode;
+  }
+  
+  // Symbol-based detection
+  const symbolMap: Record<string, CurrencyCode> = {
+    '$': 'USD',
+    '£': 'GBP',
+    '€': 'EUR',
+    '₪': 'ILS',
+  };
+  
+  if (symbolMap[normalized]) {
+    return symbolMap[normalized];
+  }
+  
+  return null;
+}
+
+/**
+ * Detect currency from a single amount string
+ */
+export function detectCurrencyFromAmount(amountString: string): CurrencyCode | null {
+  if (!amountString || amountString.trim() === '') {
+    return null;
+  }
+  
+  const symbols = {
+    '$': 'USD',
+    '£': 'GBP',
+    '€': 'EUR',
+    '₪': 'ILS',
+  };
+  
+  // Check for currency symbols
+  for (const [symbol, currency] of Object.entries(symbols)) {
+    if (amountString.includes(symbol)) {
+      return currency as CurrencyCode;
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Detect currency from dataset
+ */
+export function detectCurrencyFromDataset(
+  data: Record<string, string>[], 
+  amountField: string, 
+  currencyField?: string
+): CurrencyCode | null {
+  if (!data.length) return null;
+  
+  // If currency field exists, check for consistent currency
+  if (currencyField) {
+    const currencies = new Set<string>();
+    
+    for (const row of data) {
+      const currencyValue = row[currencyField];
+      if (currencyValue) {
+        const normalized = normalizeCurrencyCode(currencyValue);
+        if (normalized) {
+          currencies.add(normalized);
+        }
+      }
+    }
+    
+    // If we found a single consistent currency, return it
+    if (currencies.size === 1) {
+      return Array.from(currencies)[0] as CurrencyCode;
+    }
+  }
+  
+  // Try to detect from amount field symbols
+  const symbolCounts: Record<string, number> = {};
+  
+  for (const row of data) {
+    const amountValue = row[amountField];
+    if (amountValue) {
+      const detected = detectCurrencyFromAmount(amountValue);
+      if (detected) {
+        symbolCounts[detected] = (symbolCounts[detected] || 0) + 1;
+      }
+    }
+  }
+  
+  // Return the most common detected currency
+  if (Object.keys(symbolCounts).length > 0) {
+    const mostCommon = Object.entries(symbolCounts)
+      .sort(([,a], [,b]) => b - a)[0][0];
+    return mostCommon as CurrencyCode;
+  }
+  
+  return null;
+}
+
+/**
+ * Suggest currency mapping based on field names
  */
 export function suggestCurrencyMapping(headers: string[]): string | null {
-  if (!headers.length) return null;
+  const currencyPatterns = [
+    'currency', 'curr', 'ccy', 'currency_code', 'cur', 'money_type', 'denomination'
+  ];
   
   const lowercaseHeaders = headers.map(h => h.toLowerCase());
   
-  // Look for explicit currency column headers
-  const currencyKeywords = [
-    'currency',
-    'curr',
-    'ccy',
-    'currency_code',
-    'cur',
-    'money_type',
-    'denomination'
-  ];
-  
-  for (const keyword of currencyKeywords) {
+  for (const pattern of currencyPatterns) {
     const matchingHeader = lowercaseHeaders.find(header => 
-      header.includes(keyword) || keyword.includes(header)
+      header.includes(pattern) || pattern.includes(header)
     );
     
     if (matchingHeader) {
@@ -158,43 +145,4 @@ export function suggestCurrencyMapping(headers: string[]): string | null {
   }
   
   return null;
-}
-
-/**
- * Validate if a string is a valid currency code
- */
-export function isValidCurrencyCode(code: string): code is CurrencyCode {
-  const validCodes: CurrencyCode[] = ['USD', 'EUR', 'GBP', 'ILS'];
-  return validCodes.includes(code as CurrencyCode);
-}
-
-/**
- * Normalize currency code from various formats
- */
-export function normalizeCurrencyCode(input: string): CurrencyCode | null {
-  if (!input || typeof input !== 'string') return null;
-  
-  const normalized = input.trim().toUpperCase();
-  
-  // Direct mapping for common variations
-  const variations: Record<string, CurrencyCode> = {
-    'USD': 'USD',
-    'US': 'USD',
-    'DOLLAR': 'USD',
-    'DOLLARS': 'USD',
-    'EUR': 'EUR',
-    'EURO': 'EUR',
-    'EUROS': 'EUR',
-    'GBP': 'GBP',
-    'POUND': 'GBP',
-    'POUNDS': 'GBP',
-    'STERLING': 'GBP',
-    'ILS': 'ILS',
-    'NIS': 'ILS',
-    'SHEKEL': 'ILS',
-    'SHEKELS': 'ILS',
-    'ISRAELI': 'ILS'
-  };
-  
-  return variations[normalized] || null;
 } 

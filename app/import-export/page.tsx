@@ -19,12 +19,12 @@ import {
   Settings
 } from 'lucide-react'
 import { ImportForm } from '@/components/transactions'
-import { normalizeCSVData } from '@/utils/importUtils'
 import { CurrencyCode } from '@/types/database'
-import { convertAmount } from '@/lib/currency/conversion'
 import { useAuthenticatedMutation } from '@/hooks/useAuthenticatedMutation'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ImportService, ImportProgress, ImportResult } from '@/services/importService'
+import { useAuth } from '@/context/auth'
 
 interface ImportHistory {
   id: string
@@ -33,6 +33,7 @@ interface ImportHistory {
   timestamp: Date
   status: 'success' | 'failed' | 'in-progress'
   errorMessage?: string
+  result?: ImportResult
 }
 
 export default function ImportExportPage() {
@@ -40,8 +41,9 @@ export default function ImportExportPage() {
   const [importHistory, setImportHistory] = useState<ImportHistory[]>([])
   const [isExporting, setIsExporting] = useState(false)
   const [exportFormat, setExportFormat] = useState<'csv' | 'json'>('csv')
+  const [currentImportProgress, setCurrentImportProgress] = useState<ImportProgress | null>(null)
   
-  const { insert, batchInsert } = useAuthenticatedMutation()
+  const { user } = useAuth()
   const router = useRouter()
 
   // Load import history from localStorage
@@ -67,6 +69,11 @@ export default function ImportExportPage() {
   }
 
   const handleImport = async (data: any[], mappings: Record<string, string>, defaultCurrency: CurrencyCode = 'ILS') => {
+    if (!user) {
+      console.error('User not authenticated')
+      return
+    }
+
     const importId = `import-${Date.now()}`
     
     // Add to history as in-progress
@@ -82,58 +89,49 @@ export default function ImportExportPage() {
     saveImportHistory(updatedHistory)
 
     try {
-      // Normalize the data using our utility with currency support
-      const normalizedData = normalizeCSVData(data, mappings, defaultCurrency)
+      const importService = new ImportService()
       
-      // Transform to transaction format with currency support
-      const transactions = await Promise.all(normalizedData.map(async item => {
-        const originalCurrency = (item.currency as CurrencyCode) || defaultCurrency;
-        const baseCurrency = 'ILS'; // User's base currency - could be from user preferences
-        
-        // Convert amount to base currency if needed
-        let convertedAmount = item.amount || 0;
-        if (originalCurrency !== baseCurrency) {
-          try {
-            convertedAmount = await convertAmount(item.amount || 0, originalCurrency, baseCurrency);
-          } catch (error) {
-            console.warn(`Failed to convert ${originalCurrency} to ${baseCurrency}, using original amount`, error);
-            convertedAmount = item.amount || 0;
+      const result = await importService.importTransactionsInBatches(
+        data,
+        mappings,
+        defaultCurrency,
+        user.id,
+        {
+          batchSize: 50,
+          duplicateStrategy: 'skip',
+          duplicateThreshold: 0.8,
+          onProgress: (progress) => {
+            setCurrentImportProgress(progress)
           }
         }
-        
-        return {
-          description: item.description || '',
-          amount: item.amount || 0,
-          original_currency: originalCurrency,
-          converted_amount: convertedAmount,
-          base_currency: baseCurrency,
-          date: item.date || new Date().toISOString().split('T')[0],
-          identifier: item.identifier || null,
-          source: item.source || 'import',
-          notes: item.notes || null,
-          status: 'pending' as const
-        };
-      }))
+      )
 
-      // Insert transactions in batches
-      const batchSize = 100
-      for (let i = 0; i < transactions.length; i += batchSize) {
-        const batch = transactions.slice(i, i + batchSize)
-        await batchInsert('transactions', batch)
-      }
-
-      // Update history as success
-      const successHistory = updatedHistory.map(item => 
+      // Update history with results
+      const finalHistory = updatedHistory.map(item => 
         item.id === importId 
-          ? { ...item, status: 'success' as const }
+          ? { 
+              ...item, 
+              status: result.success ? 'success' as const : 'failed' as const,
+              errorMessage: result.success ? undefined : ImportService.handleImportErrors(result.errors).summary,
+              result
+            }
           : item
       )
-      saveImportHistory(successHistory)
+      saveImportHistory(finalHistory)
+      
+      // Clear progress indicator
+      setCurrentImportProgress(null)
 
-      // Show success and redirect
-      setTimeout(() => {
-        router.push('/inbox')
-      }, 2000)
+      // Show results and redirect if successful
+      if (result.success) {
+        console.log(`Import completed successfully: ${result.imported} imported, ${result.skipped} skipped`)
+        setTimeout(() => {
+          router.push('/inbox')
+        }, 2000)
+      } else {
+        const errorInfo = ImportService.handleImportErrors(result.errors)
+        console.error('Import failed:', errorInfo)
+      }
 
     } catch (error) {
       console.error('Import failed:', error)
@@ -149,6 +147,7 @@ export default function ImportExportPage() {
           : item
       )
       saveImportHistory(failedHistory)
+      setCurrentImportProgress(null)
     }
   }
 
@@ -271,9 +270,12 @@ export default function ImportExportPage() {
                             Upload a CSV file with your transaction data
                           </p>
                         </div>
-                        <Button onClick={() => setShowImportForm(true)}>
+                        <Button 
+                          onClick={() => setShowImportForm(true)}
+                          disabled={currentImportProgress !== null}
+                        >
                           <Upload className="h-4 w-4 mr-2" />
-                          Start Import
+                          {currentImportProgress ? 'Importing...' : 'Start Import'}
                         </Button>
                       </div>
                       
@@ -317,23 +319,61 @@ export default function ImportExportPage() {
                     ) : (
                       <div className="space-y-3">
                         {importHistory.slice(0, 5).map((item) => (
-                          <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
-                            <div className="flex items-center gap-3">
-                              {getStatusIcon(item.status)}
-                              <div>
-                                <p className="font-medium text-sm">{item.filename}</p>
-                                <p className="text-xs text-gray-500">
-                                  {item.timestamp.toLocaleDateString()} at {item.timestamp.toLocaleTimeString()}
-                                </p>
+                          <div key={item.id} className="p-3 border rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 flex-1">
+                                {getStatusIcon(item.status)}
+                                <div className="flex-1">
+                                  <p className="font-medium text-sm">{item.filename}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {item.timestamp.toLocaleDateString()} at {item.timestamp.toLocaleTimeString()}
+                                  </p>
+                                  
+                                  {/* Show import results if successful */}
+                                  {item.result && item.status === 'success' && (
+                                    <div className="text-sm text-green-600 mt-1 flex items-center gap-2">
+                                      <span>✅ {item.result.imported} imported</span>
+                                      {item.result.skipped > 0 && (
+                                        <span>• {item.result.skipped} skipped</span>
+                                      )}
+                                      {item.result.duplicates.length > 0 && (
+                                        <span>• {item.result.duplicates.length} duplicates detected</span>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Show error message */}
+                                  {item.errorMessage && (
+                                    <p className="text-sm text-red-600 mt-1">{item.errorMessage}</p>
+                                  )}
+                                  
+                                  {/* Show detailed errors if available */}
+                                  {item.result && !item.result.success && item.result.errors.length > 0 && (
+                                    <details className="mt-2 text-sm text-red-600">
+                                      <summary className="cursor-pointer hover:text-red-800 text-xs">
+                                        View {item.result.errors.length} error(s)
+                                      </summary>
+                                      <div className="mt-1 pl-2 border-l-2 border-red-200 max-h-32 overflow-y-auto">
+                                        {ImportService.handleImportErrors(item.result.errors).details.slice(0, 5).map((detail, i) => (
+                                          <div key={i} className="text-xs py-0.5">{detail}</div>
+                                        ))}
+                                        {item.result.errors.length > 5 && (
+                                          <div className="text-xs text-red-500">... and {item.result.errors.length - 5} more</div>
+                                        )}
+                                      </div>
+                                    </details>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-600">
-                                {item.rowCount} rows
-                              </span>
-                              <Badge variant="secondary" className={`text-xs ${getStatusColor(item.status)}`}>
-                                {item.status}
-                              </Badge>
+                              
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-600">
+                                  {item.rowCount} rows
+                                </span>
+                                <Badge variant="secondary" className={`text-xs ${getStatusColor(item.status)}`}>
+                                  {item.status}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -491,11 +531,43 @@ export default function ImportExportPage() {
                           Export {exportFormat.toUpperCase()}
                         </>
                       )}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                                            </Button>
+                      </div>
+                    </div>
+
+                    {/* Import Progress Display */}
+                    {currentImportProgress && (
+                      <div className="mt-4 p-4 border rounded-lg bg-blue-50">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-blue-900">Import Progress</h4>
+                          <span className="text-sm text-blue-700">
+                            {Math.round(currentImportProgress.percentage)}%
+                          </span>
+                        </div>
+                        
+                        <div className="w-full bg-blue-200 rounded-full h-2 mb-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                            style={{ width: `${currentImportProgress.percentage}%` }}
+                          ></div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between text-sm text-blue-700">
+                          <span>{currentImportProgress.message}</span>
+                          {currentImportProgress.totalBatches > 0 && (
+                            <span>
+                              Batch {currentImportProgress.currentBatch} of {currentImportProgress.totalBatches}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="text-xs text-blue-600 mt-1">
+                          {currentImportProgress.processed} / {currentImportProgress.total} records processed
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
           </TabsContent>
         </Tabs>
       </div>

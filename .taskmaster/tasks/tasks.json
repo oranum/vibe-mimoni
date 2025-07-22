@@ -320,9 +320,9 @@
             "id": 7,
             "title": "Implement Advanced Rule Features",
             "description": "Add support for OR logic, rule groups, and conditional actions",
-            "status": "pending",
+            "status": "in-progress",
             "dependencies": [],
-            "details": "",
+            "details": "<info added on 2025-07-22T08:05:11.794Z>\n## 🚀 IMPLEMENTATION PLAN FOR ADVANCED RULE FEATURES\n\n### Current State Analysis:\n- Existing rules engine supports basic AND logic (all conditions must match)\n- Current structure: Rule contains array of conditions, all evaluated with AND logic\n- Database schema supports conditions as JSON array in rules table\n- Performance monitoring system is already in place\n\n### Features to Implement:\n\n#### 1. **OR Logic Support**\n- Add `logic_operator` field to rule conditions: 'AND' | 'OR'\n- Enhance evaluateRule function to support both AND/OR logic\n- Update RuleForm UI to allow users to choose AND/OR logic\n- Maintain backward compatibility with existing rules (default to AND)\n\n#### 2. **Rule Groups (Condition Groups)**\n- Implement nested condition groups with mixed AND/OR logic\n- Structure: Rule -> Condition Groups -> Individual Conditions\n- Each group can have its own logic operator\n- UI: Visual grouping with parentheses and logic operators\n\n#### 3. **Conditional Actions**\n- Extend beyond just \"apply labels\" to support multiple action types:\n  - Apply labels (existing)\n  - Set transaction status\n  - Add notes/comments\n  - Trigger notifications\n  - Set priority levels\n\n### Technical Implementation Strategy:\n\n#### Database Schema Updates:\n- Add `logic_operator` field to rules table\n- Enhance conditions structure to support nested groups\n- Add `actions` field to replace simple `labels_to_apply`\n- Maintain backward compatibility\n\n#### Code Architecture:\n- Refactor rule evaluation engine to support recursive group evaluation\n- Update TypeScript types for new rule structure\n- Enhance RuleForm component with advanced UI controls\n- Update performance monitoring for complex rule tracking\n\n### Implementation Steps:\n1. Update database schema and types\n2. Enhance rules engine evaluation logic\n3. Update RuleForm UI with advanced controls\n4. Add rule testing interface updates\n5. Update performance monitoring\n6. Add migration for existing rules\n</info added on 2025-07-22T08:05:11.794Z>\n<info added on 2025-07-22T08:26:33.806Z>\n## IMPLEMENTATION PROGRESS REPORT - ADVANCED RULE FEATURES\n\n### Database Schema Analysis Completed\n- Analyzed current rules table structure and JSON condition storage\n- Identified necessary schema changes to support nested condition groups\n- Mapped required fields for logical operators and conditional actions\n\n### Type Definitions Updated\n```typescript\n// New TypeScript types for advanced rule structure\ninterface RuleConditionGroup {\n  id: string;\n  logicOperator: 'AND' | 'OR';\n  conditions: (RuleCondition | RuleConditionGroup)[];\n}\n\ninterface RuleAction {\n  type: 'apply_label' | 'set_status' | 'add_note' | 'send_notification' | 'set_priority';\n  config: Record<string, any>; // Type varies based on action type\n}\n\ninterface EnhancedRule extends BaseRule {\n  rootConditionGroup: RuleConditionGroup;\n  actions: RuleAction[];\n}\n```\n\n### Initial Implementation Steps Completed\n- Created migration script for database schema updates\n- Added backward compatibility layer for existing rules\n- Implemented recursive evaluation function for nested condition groups\n- Built test cases for complex rule evaluation scenarios\n\n### Next Steps\n1. Complete rule evaluation engine modifications\n2. Begin UI component updates for the rule builder\n3. Implement action type selection and configuration UI\n4. Create visual representation of condition groups\n</info added on 2025-07-22T08:26:33.806Z>",
             "testStrategy": ""
           }
         ]
@@ -353,7 +353,7 @@
           5,
           7
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -448,8 +448,8 @@
             "dependencies": [
               3
             ],
-            "details": "Create services/importService.ts with functions for:\n- validateTransactionData: Validate mapped data against schema requirements\n- detectDuplicateTransactions: Check for potential duplicates based on date, amount, description\n- transformToTransactionFormat: Convert mapped data to transaction schema\n- importTransactionsInBatches: Insert transactions in batches with progress tracking\n- handleImportErrors: Process and report errors during import\n\nImplement optimistic UI updates and progress indicators for large imports. Add support for conflict resolution strategies (skip, replace, or keep both for duplicates).",
-            "status": "pending",
+            "details": "Create services/importService.ts with functions for:\n- validateTransactionData: Validate mapped data against schema requirements\n- detectDuplicateTransactions: Check for potential duplicates based on date, amount, description\n- transformToTransactionFormat: Convert mapped data to transaction schema\n- importTransactionsInBatches: Insert transactions in batches with progress tracking\n- handleImportErrors: Process and report errors during import\n\nImplement optimistic UI updates and progress indicators for large imports. Add support for conflict resolution strategies (skip, replace, or keep both for duplicates).\n<info added on 2025-07-21T12:15:39.698Z>\nSuccessfully implemented complete transaction import processing system with comprehensive ImportService in services/importService.ts featuring advanced validation, duplicate detection using similarity algorithm (date 40%, amount 35%, description 25% with Jaccard index), data transformation with currency conversion, efficient batch processing (50 records per batch), and detailed error handling with actionable suggestions. \n\nUpdated Import Page with real-time progress indicators showing percentage and status, enhanced import history display with detailed results, expandable error details, and improved UX with color-coded indicators. Implemented key performance optimizations including 90-day query window for duplicate detection, async currency conversion, proper error boundaries, and graceful failure handling. All functionality thoroughly tested including validation, duplicate detection, currency conversion, batch processing, progress tracking, and error handling.\n</info added on 2025-07-21T12:15:39.698Z>",
+            "status": "done",
             "testStrategy": "Test with large datasets to verify batching works correctly. Test duplicate detection with various similarity thresholds. Verify error handling when database constraints are violated. Test performance with datasets of different sizes."
           },
           {
@@ -825,7 +825,7 @@
     ],
     "metadata": {
       "created": "2025-07-13T09:57:56.483Z",
-      "updated": "2025-07-16T10:35:29.047Z",
+      "updated": "2025-07-21T12:15:43.815Z",
       "description": "Tasks for master context"
     }
   }

@@ -42,7 +42,7 @@ export async function getConversionRate(
       .select('rate')
       .eq('from_currency', fromCurrency)
       .eq('to_currency', toCurrency)
-      .order('last_updated', { ascending: false })
+      .order('effective_date', { ascending: false })
       .limit(1);
 
     if (!error && data && data.length > 0) {
@@ -55,7 +55,7 @@ export async function getConversionRate(
       .select('rate')
       .eq('from_currency', toCurrency)
       .eq('to_currency', fromCurrency)
-      .order('last_updated', { ascending: false })
+      .order('effective_date', { ascending: false })
       .limit(1);
 
     if (!reverseError && reverseData && reverseData.length > 0) {
@@ -79,7 +79,7 @@ export async function getAllCurrencyRates() {
     const { data, error } = await supabase
       .from('currency_rates')
       .select('*')
-      .order('last_updated', { ascending: false });
+      .order('effective_date', { ascending: false });
 
     if (error) {
       throw error;
@@ -88,7 +88,7 @@ export async function getAllCurrencyRates() {
     return data?.map(rate => ({
       ...rate,
       rate: Number(rate.rate),
-      last_updated: new Date(rate.last_updated),
+      effective_date: new Date(rate.effective_date),
     })) || [];
   } catch (error) {
     console.error('Error getting all currency rates:', error);
@@ -117,7 +117,7 @@ export async function updateCurrencyRate(
         from_currency: fromCurrency,
         to_currency: toCurrency,
         rate: rate,
-        last_updated: effectiveDate?.toISOString() || new Date().toISOString(),
+        effective_date: effectiveDate?.toISOString() || new Date().toISOString(),
       });
 
     if (error) {
@@ -162,7 +162,7 @@ export async function getLatestRatesForCurrency(
       .from('currency_rates')
       .select('to_currency, rate')
       .eq('from_currency', baseCurrency)
-      .order('last_updated', { ascending: false });
+      .order('effective_date', { ascending: false });
 
     if (error) {
       throw error;

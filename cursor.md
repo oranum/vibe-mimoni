@@ -32,6 +32,28 @@ The app combines:
 - **APIs**: Supabase REST endpoints + optional custom Next.js API routes
 - **Optional Testing**: Jest, Cypress
 
+## 🧩 Component Development with ShadCN/UI MCP
+
+This project uses **shadcn/ui** components with dedicated MCP tools for component exploration and implementation:
+
+### **Available MCP Tools:**
+- `mcp_shadcn-ui_list_components` - List all available shadcn/ui v4 components
+- `mcp_shadcn-ui_get_component` - Get source code for specific components
+- `mcp_shadcn-ui_get_component_demo` - Get demo/usage examples for components
+- `mcp_shadcn-ui_get_component_metadata` - Get component metadata and dependencies
+
+### **Development Workflow:**
+1. **Explore Available Components**: Use `list_components` to see what's available
+2. **Get Component Source**: Use `get_component` to retrieve the latest component code
+3. **See Usage Examples**: Use `get_component_demo` to understand proper implementation
+4. **Install & Integrate**: Create component files in `components/ui/` and integrate
+
+### **Best Practices:**
+- Always use the MCP tools to get the latest v4 components
+- Follow shadcn/ui patterns for consistency
+- Use TypeScript and proper prop interfaces
+- Implement components with RTL/Hebrew support when needed
+
 ---
 
 # 📋 Core Features

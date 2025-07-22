@@ -8,7 +8,7 @@ import {
   detectCurrencyFromAmount,
   suggestCurrencyMapping, 
   cleanAmountString,
-  normalizeCurrencyCode
+  normalizeCurrencyCode,
 } from '@/lib/currency/detection';
 
 export interface CSVParseResult {

@@ -120,3 +120,61 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* RTL and Hebrew support */
+.rtl {
+  direction: rtl;
+  font-family: 'Segoe UI', 'Tahoma', Arial, sans-serif;
+}
+
+.ltr {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.rtl table {
+  direction: rtl;
+}
+
+.rtl table th,
+.rtl table td {
+  text-align: right;
+}
+
+.rtl .ltr {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Hebrew number formatting */
+.rtl .currency-amount {
+  direction: ltr;
+  display: inline-block;
+  text-align: left;
+}
+
+/* Badge and label alignment for RTL */
+.rtl .flex {
+  flex-direction: row-reverse;
+}
+
+.rtl .justify-end {
+  justify-content: flex-start;
+}
+
+.rtl .text-right {
+  text-align: right;
+}
+
+/* Specific adjustments for RTL layout */
+.rtl .gap-1 {
+  gap: 0.25rem;
+}
+
+.rtl .gap-2 {
+  gap: 0.5rem;
+}
+
+.rtl .gap-4 {
+  gap: 1rem;
+}

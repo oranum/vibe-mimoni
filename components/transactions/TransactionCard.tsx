@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
+import { formatCurrency } from '@/lib/currency/formatting';
 import { cn } from '@/lib/utils';
 import { ApprovalActions } from './ApprovalActions';
 
@@ -78,8 +79,13 @@ export function TransactionCard({
                 isIncome ? 'text-green-600' : 'text-red-600'
               )}
             >
-              {isIncome ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+              {isIncome ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount), transaction.original_currency)}
             </div>
+            {transaction.original_currency !== transaction.base_currency && transaction.converted_amount && (
+              <div className="text-xs text-muted-foreground">
+                ≈ {isIncome ? '+' : '-'}{formatCurrency(Math.abs(transaction.converted_amount), transaction.base_currency)}
+              </div>
+            )}
             {transaction.identifier && (
               <div className="text-xs text-muted-foreground mt-1">
                 ID: {transaction.identifier}

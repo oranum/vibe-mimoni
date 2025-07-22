@@ -71,14 +71,53 @@ A personal finance management web app designed to give users control, visibility
 
 ### 📊 Dashboard & Reporting
 
-* Visual summaries of:
+#### **Dashboard Overview (Hebrew/RTL Interface)**
+* **Monthly-Oriented Dashboard**: All data focused on monthly timeframes
+* **Hebrew Interface**: Full RTL (Right-to-Left) interface with Hebrew labels
+* **Transaction Filtering Criteria**:
+  * Only **approved** transactions (not pending)
+  * Within the **selected month** timeframe
+  * Exclude transactions labeled/marked as **"ignore"**
 
-  * Income
-  * Expenses
-  * Savings trends
-  * Investment performance
-* Monthly breakdowns & category analyses.
-* Forecasting based on historical & recurring patterns.
+#### **Key Performance Indicators (KPIs)**
+* **יתרה חודשית (Monthly Balance)**: Income - Expenses for the month
+* **סה"כ הוצאות (Total Expenses)**: Sum of all negative amounts (expenses) 
+* **סה"כ הכנסות (Total Income)**: Sum of positive amounts tagged with "הכנסה" (Income) label only
+* **Month Status Indicator**: Shows if month is "complete" (no pending transactions) or displays remaining pending count
+
+#### **Monthly Navigation**
+* **Default View**: Current month
+* **Navigation**: Previous/Next month arrows
+* **Date Format**: Hebrew month names (e.g., "ינואר 2025")
+* **Month Status**: Green indicator when no pending transactions remain
+
+#### **Transaction Table - "הוצאות חודשיות" (Monthly Expenses)**
+* **Display**: Only expense transactions (negative amounts)
+* **Columns** (RTL order):
+  1. **תיאור העסקה** - Transaction description
+  2. **תאריך** - Date (dd/mm/yyyy format)
+  3. **תוויות** - Colored labels/categories
+  4. **סכום** - Amount (original currency + converted to ILS)
+* **Sorting Options**:
+  * Date (default: newest → oldest)
+  * Amount (ascending/descending)  
+  * Description (alphabetical)
+* **Pagination**: Single page per month or pagination ~50 items
+
+#### **Multi-Currency Display**
+* **KPIs**: Use converted amounts (in ILS ₪)
+* **Transaction Table**: Show both original amount and converted amount
+* **Number Format**: LTR formatting for amounts with proper currency symbols
+
+#### **Special Categories**
+* **Income Category**: Transactions labeled "הכנסה" (Income label)
+* **Ignore Functionality**: Transactions marked as "ignored" status are completely hidden
+* **Label System**: Visual color-coded labels for categorization
+
+#### **Advanced Features**
+* Monthly breakdowns & category analyses
+* Forecasting based on historical & recurring patterns
+* Visual charts and graphs integration
 
 ### 💼 Investments & Assets
 
@@ -142,7 +181,7 @@ A personal finance management web app designed to give users control, visibility
 | identifier         | text                       | external id               |
 | date               | timestamp                  |                           |
 | source             | text                       |                           |
-| status             | enum(`pending`,`approved`) |                           |
+| status             | enum(`pending`,`approved`,`ignored`) | Dashboard excludes ignored |
 | notes              | text (nullable)            |                           |
 | created\_at        | timestamp                  | default now()             |
 

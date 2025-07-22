@@ -24,11 +24,6 @@ export { default as RulePerformanceAnalytics } from './RulePerformanceAnalytics'
 export { default as DataMappingTable } from '../import/DataMappingTable'
 export { default as ImportForm } from '../import/ImportForm';
 
-// Currency components
-export { CurrencyDisplay } from '../ui/CurrencyDisplay';
-export { CurrencySelector } from '../ui/CurrencySelector';
-export { CurrencyToggle } from '../ui/CurrencyToggle';
-
 // Re-export types for convenience
 export type { TransactionCardProps } from './TransactionCard';
 export type { TransactionListProps } from './TransactionList';

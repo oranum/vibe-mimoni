@@ -56,7 +56,7 @@ function InboxContent() {
         .from('transactions')
         .select(`
           *,
-          transaction_labels!inner (
+          transaction_labels (
             labels (
               id,
               name,
@@ -104,6 +104,9 @@ function InboxContent() {
         id: transaction.id,
         user_id: transaction.user_id,
         amount: parseFloat(transaction.amount),
+        original_currency: transaction.original_currency || 'ILS',
+        converted_amount: transaction.converted_amount ? parseFloat(transaction.converted_amount) : parseFloat(transaction.amount),
+        base_currency: transaction.base_currency || 'ILS',
         description: transaction.description,
         identifier: transaction.identifier,
         date: new Date(transaction.date),
@@ -178,6 +181,9 @@ function InboxContent() {
         id: transaction.id,
         user_id: transaction.user_id,
         amount: parseFloat(transaction.amount),
+        original_currency: transaction.original_currency || 'ILS',
+        converted_amount: transaction.converted_amount ? parseFloat(transaction.converted_amount) : parseFloat(transaction.amount),
+        base_currency: transaction.base_currency || 'ILS',
         description: transaction.description,
         identifier: transaction.identifier,
         date: new Date(transaction.date),

@@ -121,7 +121,10 @@ export default function RuleTestingInterface({ onClose }: RuleTestingInterfacePr
         status: 'pending',
         notes: undefined,
         created_at: new Date(),
-        updated_at: new Date()
+        updated_at: new Date(),
+        original_currency: 'ILS',
+        converted_amount: sampleTransaction.amount,
+        base_currency: 'ILS'
       }
 
       const results = await testRulesAgainstTransaction(testTransaction)

@@ -1,7 +1,7 @@
 // Database types for the Personal Finance Management App
 // These types mirror the database schema with proper TypeScript definitions
 
-export type TransactionStatus = 'pending' | 'approved';
+export type TransactionStatus = 'pending' | 'approved' | 'ignored';
 
 // Currency types
 export type CurrencyCode = 'USD' | 'EUR' | 'GBP' | 'ILS';

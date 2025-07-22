@@ -17,7 +17,7 @@ import {
   Download
 } from 'lucide-react'
 import { parseCSV, parseJSON, validateCSVStructure, analyzeCurrencyFromCSV, CSVParseResult } from '@/utils/importUtils'
-import { CurrencySelector } from '@/components/ui/CurrencySelector'
+
 import { CurrencyCode } from '@/types/database'
 import DataMappingTable from './DataMappingTable'
 
